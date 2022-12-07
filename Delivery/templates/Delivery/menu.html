@@ -1,0 +1,13 @@
+{% extends "Delivery/index.html" %}
+
+{% block body %}
+    <div class="container">
+        <div class="card">
+            <h2>Register</h2>
+            <!-- button that redirects -->
+            <button id="form-button" class="btn btn-dark" onclick="window.location.href='{% url 'register_employee' %}'">Register as an Employee</button>
+            <button id="form-button" class="btn btn-dark" onclick="window.location.href='{% url 'register_customer' %}'">Register as a Customer</button>
+        </div>
+        
+    </div>
+{% endblock %}

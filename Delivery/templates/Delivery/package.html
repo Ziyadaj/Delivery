@@ -1,0 +1,56 @@
+{% extends "Delivery/index.html" %}
+
+{% block body %}
+<div class="container">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="weight">weight</label>
+            <input type="weight" class="form-control" id="weight" name="weight" placeholder="weight">
+        </div>
+        <div class="form-group">
+            <label for="value">value</label>
+            <input type="value" class="form-control" id="value" name="value" placeholder="value">
+        </div>
+        <!-- dimensions -->
+        <div class="form-group">
+            <label for="length">length</label>
+            <input type="length" class="form-control" id="length" name="length" placeholder="length">
+        </div>
+        <div class="form-group">
+            <label for="width">width</label>
+            <input type="width" class="form-control" id="width" name="width" placeholder="width">
+        </div>
+        <div class="form-group">
+            <label for="height">height</label>
+            <input type="height" class="form-control" id="height" name="height" placeholder="height">
+        </div>
+        <!-- insurance amount -->
+        <div class="form-group">
+            <label for="insurance_amount">insurance_amount</label>
+            <input type="insurance_amount" class="form-control" id="insurance_amount" name="insurance_amount" placeholder="insurance_amount">
+        </div>
+        <!-- package status -->
+        <div class="form-group">
+            <label for="status">status</label>
+            <input type="status" class="form-control" id="status" name="status" placeholder="status">
+        </div>
+        <!-- category -->
+        <div class="form-group">
+            <label for="category">category</label>
+            <input type="category" class="form-control" id="category" name="category" placeholder="category">
+        </div>
+        <!-- destination -->
+        <div class="form-group">
+            <label for="destination">destination</label>
+            <input type="destination" class="form-control" id="destination" name="destination" placeholder="destination">
+        </div>
+        <!-- final delivery date -->
+        <div class="form-group">
+            <label for="final_delivery_date">final delivery date</label>
+            <input type="final_delivery_date" class="form-control" id="final_delivery_date" name="final_delivery_date" placeholder="final_delivery_date">
+        </div>
+        <button type="submit" class="btn btn-primary">Add package</button>
+    </form>
+</div>
+{% endblock %}
