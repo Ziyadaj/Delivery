@@ -1,0 +1,44 @@
+{% extends "Delivery/index.html" %}
+
+{% block body %}
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endif %}
+
+
+<div class="container">
+    <div class="row">
+    {% for package in packages %}
+
+    <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
+        <div class="card-body">
+            <h5 class="card-title">{{package.id}}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{package.value}}</h6>
+            <p class="card-text">{{package.status}}</p>
+        </div>
+        <a href="{% url 'package' package.id %}">actions</a>
+    </div>
+    {% endfor %}
+    </div>
+</div>
+<div class="container">
+    <form method="post">
+        {% csrf_token %}
+        {{form}}
+        <br>
+        <button type="submit" class="btn btn-primary">Add package</button>
+    </form>
+</div>
+{% endblock %}

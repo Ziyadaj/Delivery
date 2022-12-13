@@ -8,5 +8,10 @@ urlpatterns = [
     path("register/customer", views.register_customer, name="register_customer"),
     path("register/employee", views.register_employee, name="register_employee"),
     path("menu", views.menu, name="menu"),
-    path("package", views.package, name="package"),
+    path("packages", views.packages, name="packages"),
+    path("package/<int:id>", views.package, name="package"),
+    path("users", views.users, name="users"),
+
+    # jQuery Routes
+    path("delete/<int:id>", views.delete, name="delete"),
 ]

@@ -1,0 +1,36 @@
+{% extends "Delivery/index.html" %}
+
+{% block body %}
+
+<div class="container">
+    <div>
+        <h1>Users</h1>
+    </div>
+    <div class="row">
+        {% for user in users %}
+        <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
+            <div class="card-body">
+                <h5 class="card-title
+                ">{{user.id}}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{user.username}}</h6>
+                <p class="card-text">{{user.email}}</p>
+            </div>
+            <button class="btn btn-primary" onclick="Collapse('form{{user.id}}')">Edit</button>
+            <form id="form{{user.id}}" action="" method="post">
+                {% csrf_token %}
+                {{form}}
+                <br>
+                <button name="edit" type="submit" class="btn btn-primary">Update</button>
+            </form>
+        </div>
+    {% endfor %}
+    </div>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{form}}
+        <br>
+        <button name="add" type="submit" class="btn btn-primary">Add user</button>
+    </form>
+</div>
+
+{% endblock %}
