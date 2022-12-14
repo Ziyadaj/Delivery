@@ -1,0 +1,42 @@
+{% extends "Delivery/index.html" %}
+
+{% block body %}
+
+<div class="container">
+    <div>
+        <h1>User</h1>
+    </div>
+    {% if user.is_staff %}
+        <div class="card" style="width: 18rem; margin: 10px;">
+            <div class="card-body">
+                <h5 class="card-title">{{user.id}}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{user.username}}</h6>
+                <p class="card-text">{{user.email}}</p>
+            </div>
+            <button style="margin-bottom: 10px;" class="btn btn-primary" onclick="Collapse('form{{user.id}}')">Edit</button>
+            
+            <button class="btn btn-danger" onclick="deleteUser('{{user.id}}')">Delete</button>
+            <form id="form{{user.id}}" action="" method="post" style="display: none;">
+                {% csrf_token %}
+                {{form}}
+                <br>
+                <button name="edit" type="submit" class="btn btn-primary">Update</button>
+            </form>
+        </div>
+    {% else %}
+        <div class="card" style="width: 18rem; margin: 10px;">
+            <div class="card-body">
+                <h5 class="card-title
+                ">{{user.id}}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{user.username}}</h6>
+                <p class="card-text">{{user.email}}</p>
+            </div>
+        </div>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{form}}
+            <br>
+            <button name="edit" type="submit" class="btn btn-primary">Update</button>
+        </form>
+    {% endif %}
+{% endblock %}

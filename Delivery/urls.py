@@ -11,7 +11,15 @@ urlpatterns = [
     path("packages", views.packages, name="packages"),
     path("package/<int:id>", views.package, name="package"),
     path("users", views.users, name="users"),
+    path("user/<int:id>", views.user, name="user"),
+    path("reports", views.reports, name="reports"),
+    path("send_package", views.send_package, name="send_package"),
 
     # jQuery Routes
     path("delete/<int:id>", views.delete, name="delete"),
+    path("user/delete/<int:id>", views.delete, name="delete"),
+    path("pay/<int:id>", views.payment, name="pay"),
+
+    #API Routes
+    path("send_email", views.send_email, name="send_email"),
 ]

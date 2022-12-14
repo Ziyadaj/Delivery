@@ -19,16 +19,17 @@ class Package(models.Model):
     category = models.CharField(max_length=100, default='Regular')
     value = models.FloatField(default=0)
     final_delivery_date = models.DateField()
+    recipient = models.CharField(max_length=100, default='John Doe')
+    #foreign key
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     #derived attributes
     @property
     def payment(self):
-        return self.value * (self.weight * 0.1)
+        return self.value * (self.weight * 0.1) + self.insurance_amount
     
-    #string representation
     def __str__(self):
-        return f"{self.package_number}: {self.weight} {self.destination} {self.dimensions} {self.insurance_amount} {self.status} {self.category} {self.value} {self.final_delivery_date}"
-
+        return f"{self.id}: {self.weight} {self.destination} {self.dimensions} {self.insurance_amount} {self.status} {self.category} {self.value} {self.final_delivery_date} {self.user} {self.payment}"
 # Retail model
 class RetailCenter(models.Model):
     #primary key
@@ -43,7 +44,7 @@ class TransportationEvent(models.Model):
     #primary key
     schedule_number = models.AutoField(primary_key=True)
     type = models.CharField(max_length=100)
-    deivery_route = models.CharField(max_length=100)
+    delivery_route = models.CharField(max_length=100)
 
 # Transported By relationship model
 class TransportedBy(models.Model):
@@ -55,6 +56,7 @@ class TransportedBy(models.Model):
 class Location(models.Model):
     #primary key
     location_number = models.AutoField(primary_key=True, default=1)
+    city = models.CharField(max_length=100, default='New York')
     #foreign key
     #one to many
     package = models.ForeignKey(Package, on_delete=models.CASCADE)
@@ -62,14 +64,14 @@ class Location(models.Model):
 # Trucks part of Location model
 class Truck(models.Model):
     #primary key
-    truck_number = models.AutoField(primary_key=True, default=1)
+    truck_number = models.IntegerField(primary_key=True, default=1)
     #foreign key
     #one to many
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
 # Planes part of Location model
 class Plane(models.Model):
     #primary key
-    flight_number = models.AutoField(primary_key=True, default=123)
+    flight_number = models.CharField(primary_key=True, default="SV123", max_length=5)
     #foreign key
     #one to many
     location = models.ForeignKey(Location, on_delete=models.CASCADE)

@@ -17,7 +17,59 @@
     </ul>
 {% endif %}
 
+{% if isCustomer %}
+    <div class="container">
+        <div>
+            <h1>Sent packages</h1>
+        </div>
+        <div class="row">
+            {% if empty %}
+                <p>You have no sent packages</p>
+            {% else %}
 
+            {% for package in packages %}
+        
+            <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
+                <div class="card-body">
+                    <h5 class="card-title">Package number: {{package.id}}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Payment: {{package.payment}}</h6>
+                    <p class="card-text">{{package.status}}</p>
+                    <p class="card-text">Sender: {{package.user}}</p>
+                    <p class="card-text">Recipient: {{package.recipient}}</p>
+                </div>
+                <a href="{% url 'package' package.id %}">actions</a>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        <div>
+            <h1>Received packages</h1>
+        </div>
+        <div class="row">
+            {% if empty %}
+                <p>You have no received packages</p>
+            {% else %}
+            {% if not delivered %}
+                <p>You have no packages to process</p>
+            {% else %}
+            {% for apackage in package %}
+        
+            <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
+                <div class="card-body">
+                    <h5 class="card-title">Package number: {{apackage.id}}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Payment: {{apackage.payment}}</h6>
+                    <p class="card-text">{{apackage.status}}</p>
+                    <p class="card-text">Sender: {{apackage.user}}</p>
+                    <p class="card-text">Recipient: {{apackage.recipient}}</p>
+                    <button class="btn btn-success" onclick="pay('{{apackage.id}}')">Pay</button>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endif %}
+    </div>
+{% endif %}
+{% if not isCustomer %}
 <div class="container">
     <div class="row">
     {% for package in packages %}
@@ -33,12 +85,13 @@
     {% endfor %}
     </div>
 </div>
-<div class="container">
-    <form method="post">
-        {% csrf_token %}
-        {{form}}
-        <br>
-        <button type="submit" class="btn btn-primary">Add package</button>
-    </form>
-</div>
+    <div class="container">
+        <form method="post">
+            {% csrf_token %}
+            {{form}}
+            <br>
+            <button type="submit" class="btn btn-primary">Add package</button>
+        </form>
+    </div>
+{% endif %}
 {% endblock %}

@@ -10,21 +10,26 @@
         {% for user in users %}
         <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
             <div class="card-body">
-                <h5 class="card-title
-                ">{{user.id}}</h5>
+                <h5 class="card-title">{{user.id}}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">{{user.username}}</h6>
                 <p class="card-text">{{user.email}}</p>
+                <!-- user type -->
+                {% if user.is_staff %}
+                    <p class="card-text">Admin</p>
+                {% else %}
+                    <p class="card-text">User</p>
+                {% endif %}
             </div>
-            <button class="btn btn-primary" onclick="Collapse('form{{user.id}}')">Edit</button>
-            <form id="form{{user.id}}" action="" method="post">
-                {% csrf_token %}
-                {{form}}
-                <br>
-                <button name="edit" type="submit" class="btn btn-primary">Update</button>
-            </form>
+
+            <a href="{% url 'user' user.id %}">Edit</a>
         </div>
     {% endfor %}
     </div>
+</div>
+
+<div class="container">
+    <br>
+    <h1>Add user</h1>
     <form action="" method="post">
         {% csrf_token %}
         {{form}}
