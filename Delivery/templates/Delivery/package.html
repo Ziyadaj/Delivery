@@ -19,40 +19,40 @@
 <div class="containter">
     <div class="row">
 
-        <!-- card -->
-        <div class="card" >
-            <div class="card-body" id="card-collapse">
-                <h5 id="id" class="card-title">{{package.id}}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{package.value}}</h6>
-                <p class="card-text">{{package.status}}</p>
-                <p class="card-text">{{package.category}}</p>
-                <p class="card-footer">{{package.final_delivery_date}}</p>
-            </div>
+    <!-- card -->
+    <div class="card" >
+        <div class="card-body" id="card-collapse">
+            <h5 id="id" class="card-title">{{package.id}}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{package.value}}</h6>
+            <p class="card-text">{{package.status}}</p>
+            <p class="card-text">{{package.category}}</p>
+            <p class="card-footer">{{package.final_delivery_date}}</p>
+        </div>
 
-            <a href="{% url 'packages' %}">back</a>
-            <button class="btn btn-danger" onclick="deletePackage('{{package.id}}')">Delete</button>
-            <button class="btn btn-success" onclick="collapse()">Update</button>
-        </div>
-        <div style="display: none;" id="collapse">
-            <!-- delete -->
-            <h1>Update</h1>
-            <form method="post">
-                {% csrf_token %}
-                <h2>Package</h2>
-                {{form1}}
-                <br>
-                <h2>Location</h2>
-                {{form2}}
-                <br>
-                <h2>Location Type</h2>
-                {{form3}}
-                <br>
-                <h2>Transportation</h2>
-                {{form4}}
-                <br>
-                <button name="update" type="submit" class="btn btn-primary">Update</button>
-            </form>
-        </div>
+        <a href="{% url 'packages' %}">back</a>
+        <button class="btn btn-danger" onclick="deletePackage('{{package.id}}')">Delete</button>
+        <button class="btn btn-success" onclick="collapse()">Update</button>
+    </div>
+    <div style="display: none;" id="collapse">
+        <!-- delete -->
+        <h1>Update</h1>
+        <form method="post">
+            {% csrf_token %}
+            <h2>Package</h2>
+            {{form1}}
+            <br>
+            <h2>Location</h2>
+            {{form2}}
+            <br>
+            <h2>Location Type</h2>
+            {{form3}}
+            <br>
+            <h2>Transportation</h2>
+            {{form4}}
+            <br>
+            <button name="update" type="submit" class="btn btn-primary">Update</button>
+        </form>
+    </div>
     </div>
 </div>
 {% endblock %}
