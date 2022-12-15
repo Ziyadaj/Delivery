@@ -1,0 +1,112 @@
+{% extends "Delivery/index.html" %}
+{% load static %}
+{% block body %}
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endif %}
+<div class="container">
+    <div class="row">
+        {% if id == 2 %}
+        <div>
+            <h1>Report for packages</h1>
+        </div>
+        <div class="col-sm-6">
+            <form id="form2" action="" method="post">
+                {% csrf_token %}
+                {{form.start_date}}
+                {{form.end_date}}
+                {{form.status}}
+                <br>
+                <input type="hidden" name="form_type" value="form2">
+                <button name="get" type="submit" class="btn btn-primary">Get report</button>
+            </form>
+        </div>
+        {% elif id == 3 %}
+        <div>
+            <h1>Report for packages</h1>
+        </div>
+        <div class="col-sm-6">
+            <form id="form3" action="" method="post">
+                {% csrf_token %}
+                {{form.start_date}}
+                {{form.end_date}}
+                {{form.category}}
+                <br>
+                <input type="hidden" name="form_type" value="form3">
+
+                <button name="get" type="submit" class="btn btn-primary">Get report</button>
+            </form>
+        </div>
+        {% elif id == 4 %}
+        <div>
+            <h1>Report for packages</h1>
+        </div>
+        <div class="col-sm-6">
+            <form id="form4" action="" method="post">
+                {% csrf_token %}
+                {{form.category}}
+                {{form.status}}
+                {{form.location}}
+                <br>
+                <input type="hidden" name="form_type" value="form4">
+                <button name="get" type="submit" class="btn btn-primary">Get report</button>
+            </form>
+        </div>
+        {% elif id == 5 %}
+        <div>
+            <h1>Report for packages</h1>
+        </div>
+        <div class="col-sm-6">
+            <form id="form5" action="" method="post">
+                {% csrf_token %}
+                {{form.user}}
+                <br>
+                <input type="hidden" name="form_type" value="form5">
+                <button name="get" type="submit" class="btn btn-primary">Get report</button>
+            </form>
+        </div>
+
+        {% endif %}
+    </div>
+    <div>
+        <h1>Report</h1>
+    </div>
+    
+    <div id="report-body">
+            
+        {% if packages %}
+        <div class="row">
+        {% for package in packages %}
+            <div class="card" style="width: 18rem; margin: 10px;">
+                <div class="card-body">
+                    <h5 class="card-title">ID: {{package.id}}</h5>
+                    <p class="card-text">Type: {{package.category}}</p>
+                    <h6 class="card-subtitle mb-2 text-muted">From: {{package.user}}</h6>
+                    <p class="card-text">To: {{package.recipient}}</p>
+                    <p class="card-text">Status: {{package.status}}</p>
+                    <p class="card-text">Date: {{package.final_delivery_date}}</p>
+                </div>
+                <a href="{% url 'package' package.id %}">Actions</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <p>No packages found</p>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

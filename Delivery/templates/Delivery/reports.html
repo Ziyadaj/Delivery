@@ -1,20 +1,26 @@
 {% extends "Delivery/index.html" %}
-
+{% load static %}
 {% block body %}
 
 <div class="container">
     <div>
         <h1>Reports</h1>
-    </div>
-    <div class="row">
-        <select name="query1" id="">
-            <option value="">Select a report</option>
-            <option value="">Report 1</option>
-            <option value="">Report 2</option>
-            <option value="">Report 3</option>
-        </select>
-        
+            <select name="" id="">
+                <option>Select an option</option>
+                <option value="1" onclick="url('1')">Payments that have been confirmed and completed</option>
+                <option value="2" onclick="url('2')">List all lost/delayed/delivered packages between two dates</option>
+                <option value="3" onclick="url('3')">List the total number of package types (Regular, Fragile, Liquid, Chemical ) that have been sent between two dates.</option>
+                <option value="4" onclick="url('4')">Package Delivery Tracking based on categories, locations and status. For example, list all fragile packages currently in transit at Riyadh.</option>
+                <option value="5" onclick="url('5')">List all packages information either sent or received by a particular customer.</option>
+            </select>
     </div>
 </div>
 
+{% endblock %}
+{% block scripts %}
+<script>
+    function url(value){
+        window.location.href = "/report/" + value;
+    }
+</script>
 {% endblock %}

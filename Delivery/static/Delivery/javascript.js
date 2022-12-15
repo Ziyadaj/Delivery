@@ -21,7 +21,7 @@ function deleteUser(id) {
         $(document).ready(function () {
             $.ajax({
                 method: 'POST',
-                url: `user/delete/${id}`,
+                url: `/deleteuser/${id}`,
                 success: function (data) {
                     //this gets called when server returns an OK response
                     alert("it worked!");
@@ -87,5 +87,13 @@ function collapse() {
         y.style.display = "block";
     } else {
         y.style.display = "none";
+    }
+}
+function collapseUser() {
+    var x = document.getElementById("form-collapse");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
     }
 }

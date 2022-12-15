@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from .models import User, Package, RetailCenter, TransportationEvent, Location, Truck, Plane, Airport, Customer, TransportedBy, Warehouse
+from .models import User, Package, RetailCenter, TransportationEvent, Location, Truck, Plane, Airport, TransportedBy, Warehouse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.core.mail import send_mail,BadHeaderError
@@ -25,31 +25,32 @@ class PackageForm(forms.ModelForm):
         fields = ['recipient','weight', 'destination', 'dimensions', 'insurance_amount', 'status', 'category', 'value', 'final_delivery_date']
         widgets = {
             'recipient': forms.Select(choices=[(user, user) for user in User.objects.all()], attrs={'class': 'form-control'}),
-            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'destination': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'in kilograms'}),
+            'destination': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Riyadh, Jeddah, etc...'}),
             'dimensions': forms.Select(choices=[(dimension, dimension) for dimension in dimensions], attrs={'class': 'form-control'}),
-            'insurance_amount': forms.NumberInput(attrs={'class': 'form-control'}),
+            'insurance_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'in dollars'}),
             'status': forms.Select(choices=[(status, status) for status in status], attrs={'class': 'form-control'}),   
             'category': forms.Select(choices=[(category, category) for category in categories], attrs={'class': 'form-control'}),
-            'value': forms.NumberInput(attrs={'class': 'form-control'}),
-            'final_delivery_date': forms.DateInput(attrs={'class': 'form-control'}),
+            'value': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'in dollars'}),
+            'final_delivery_date': forms.DateInput(attrs={'class': 'form-control' , 'placeholder': 'M/DD/YYYY'}),
         }
 class LocationForm(forms.ModelForm):
     class Meta:
         model = Location
         fields = ['city']
         widgets = {
-            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Riyadh, Jeddah, etc...'}),
         }
 class LocationTypeForm(forms.Form):
     type = forms.ChoiceField(choices=[(type, type) for type in loc_type])
+    identifier = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter the identifier ex. truck number, airport code, etc...'}))
 class TransportationEventForm(forms.ModelForm):
     class Meta:
         model = TransportationEvent
-        fields = ['type', 'delivery_route']
+        fields = ['event_type', 'delivery_route']
         widgets = {
-            'type': forms.Select(choices=[(type, type) for type in event_type], attrs={'class': 'form-control'}),
-            'delivery_route': forms.TextInput(attrs={'class': 'form-control'}),
+            'event_type': forms.Select(choices=[(event_type, event_type) for event_type in event_type], attrs={'class': 'form-control'}),
+            'delivery_route': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter the route, ie: Chicago to New York'}),
         }
 
 class RetailCenterForm(forms.ModelForm):
@@ -58,7 +59,7 @@ class RetailCenterForm(forms.ModelForm):
         fields = ['address', 'type']
         widgets = {
             'type': forms.Select(choices=[(type, type) for type in ['Retail', 'Distribution']], attrs={'class': 'form-control'}),
-            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter the address, ie: 123 Main St.'}),
         }
 class UserForm(forms.ModelForm):
     class Meta:
@@ -73,12 +74,18 @@ class UserForm(forms.ModelForm):
         }
 
 class ReportForm(forms.Form):
-    start_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control'}))
-    end_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control'}))
-    status = forms.ChoiceField(choices=[(status, status) for status in status], widget=forms.Select(attrs={'class': 'form-control'}))
-    category = forms.ChoiceField(choices=[(category, category) for category in categories], widget=forms.Select(attrs={'class': 'form-control'}))
+    start_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'class': 'form-control' , 'placeholder': 'M/DD/YYYY'}))
+    end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control' , 'placeholder': 'M/DD/YYYY'}))
+    status = forms.ChoiceField(choices=[(status, status) for status in status], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    category = forms.ChoiceField(choices=[(category, category) for category in categories], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    user = forms.ChoiceField(choices=[(user, user) for user in User.objects.all()], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    location = forms.ChoiceField(choices=[(location.city, location.city) for location in Location.objects.all()], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+
+
 
 def index(request):
+    if request.method == "POST":
+        send_email(request)
     return render(request, 'Delivery/index.html')
 
 #Adminstration/Employee functions
@@ -91,12 +98,13 @@ def packages(request):
         packages = Package.objects.filter(user_id=request.user.id)
         #get received package for user by recipient name
         package = Package.objects.filter(recipient=request.user.username)
+        print(package)
         return render(request, "Delivery/packages.html", {
             "packages": packages,
             "package": package,
             "isCustomer": True,
-            "empty": not packages.exists(),
-            "delivered": packages.filter(status="Delivered").exists(),
+            "emptyID": not packages.exists(),
+            "emptyName": not package.exists(),
         })
 
     packages = Package.objects.all()
@@ -124,36 +132,36 @@ def package(request, id):
     form1 = PackageForm(request.POST or None, instance=package)
     form2 = LocationForm(request.POST)
     form3 = LocationTypeForm(request.POST)
-    # form4 = RetailCenterForm(request.POST)
     form4 = TransportationEventForm(request.POST)
-    if form1.is_valid() and form2.is_valid() and form3.is_valid() and form4.is_valid():
-        form1.save()
-        #create location
-        form2.save()
-        #create package
-        package = form1.save(commit=False)
-        package.save()
-        #create transportation event
-        form4.save()
-        #create retail center
-        # form4.save()
-        #create location type
-        location_type = form3.save(commit=False)
-        if (location_type.type == 'Plane'):
-            plane = Plane.objects.create(flight_number="", location=Location.objects.get(city=form2.cleaned_data['city']))
-            plane.save()
-        elif (location_type.type == 'Truck'):
-            truck = Truck.objects.create(truck_number=1, location=Location.objects.get(city=form2.cleaned_data['city']))
-            truck.save()
-        elif (location_type.type == 'Airport'):
-            airport = Airport.objects.create(airport_code="",address=form2.cleaned_data['city'])
-            airport.save()
-        elif (location_type.type == 'Warehouse'):
-            warehouse = Warehouse.objects.create(warehouse_address="",address=form2.cleaned_data['city'])
-            warehouse.save()
-        location_type.save()
-        messages.success(request, 'Package updated successfully')
-        return HttpResponseRedirect(reverse("packages"))
+    if request.method == "POST":
+        if form1.is_valid() and form2.is_valid() and form3.is_valid() and form4.is_valid():
+            form1.save()
+            #create location
+            loc = form2.save(commit=False)
+            loc.package = package
+            loc.save()
+            #create transportation event
+            form4.save()
+            #TransportedBy 
+            TransportedBy.objects.create(schedule_number=form4.save(), package_number=package)
+            #create location type
+            location_type = form3.cleaned_data['type']
+            if (location_type == 'Plane'):
+                plane = Plane.objects.create(flight_number=form3.cleaned_data['identifier'], location=Location.objects.get(city=form2.cleaned_data['city']))
+
+                plane.save()
+            elif (location_type == 'Truck'):
+                truck = Truck.objects.create(truck_number=form3.cleaned_data['identifier'], location=Location.objects.get(city=form2.cleaned_data['city']))
+                truck.save()
+            elif (location_type == 'Airport'):
+                airport = Airport.objects.create(airport_code=form3.cleaned_data['identifier'], location = Location.objects.get(city=form2.cleaned_data['city']))
+                airport.save()
+            elif (location_type == 'Warehouse'):
+                warehouse = Warehouse.objects.create(warehouse_address=form3.cleaned_data['identifier'], location = Location.objects.get(city=form2.cleaned_data['city']))
+                warehouse.save()
+            messages.success(request, 'Package updated successfully')
+            return HttpResponseRedirect(reverse("packages"))
+
     return render(request, "Delivery/package.html", {
         "package": package,
         "form1": PackageForm(instance=package),
@@ -170,13 +178,18 @@ def delete(request, id):
         package = Package.objects.get(pk=id)
         package.delete()
         messages.success(request, 'Package deleted successfully')
-
-    elif (User.objects.filter(pk=id).exists()):
+    return HttpResponseRedirect(reverse("packages"))
+    
+@login_required
+@staff_member_required
+@csrf_exempt
+def user_delete(request, id):
+    # delete either a package or a user
+    if (User.objects.filter(pk=id).exists()):
         user = User.objects.get(pk=id)
         user.delete()
         messages.success(request, 'User deleted successfully')
-
-    return HttpResponseRedirect(reverse("packages"))
+    return HttpResponseRedirect(reverse("users"))
     
 #add/remove/edit user
 
@@ -232,21 +245,35 @@ def send_email(request):
         return HttpResponse('Make sure all fields are entered and valid.')
 
 def reports(request):
-    packages = Package.objects.all()
-    #querys
-    #List all lost/delayed/delivered packages between two dates
-    packages = Package.objects.filter(status='delivered', final_delivery_date__range=['2020-01-01', '2020-12-31'])
-    #List the total number of package types (Regular, Fragile, Liquid, Chemical ) that have been sent between two dates.
-    packages = Package.objects.filter(category='Regular', final_delivery_date__range=['2020-01-01', '2020-12-31'])
-    #Package Delivery Tracking based on categories, locations and status. For example, list all fragile packages currently in transit at Riyadh.
-    packages = Package.objects.filter(category='Fragile', status='in transit', location=1)
-    #List all packages information either sent or received by a particular customer.
-    # packages = Package.objects.filter(user_id=1)
-    return render(request, 'Delivery/reports.html', {'packages': packages})
+    return render(request, 'Delivery/reports.html')
+
+def report(request, id):
+    form = ReportForm(request.POST)
+    packages = None
+    if (id==1):
+        packages = Package.objects.filter(pay = True)
+    if request.method == "POST" and form.is_valid():
+        if request.POST.get('form_type') == 'form2':
+            packages = Package.objects.filter(status=form.cleaned_data['status'], final_delivery_date__range=[form.cleaned_data['start_date'], form.cleaned_data['end_date']])
+        elif request.POST.get('form_type') == 'form3':
+            packages = Package.objects.filter(category=form.cleaned_data['category'], final_delivery_date__range=[form.cleaned_data['start_date'], form.cleaned_data['end_date']])
+        elif request.POST.get('form_type') == 'form4':
+            packages = Package.objects.filter(category=form.cleaned_data['category'], status=form.cleaned_data['status'], location__city=form.cleaned_data['location'])
+        elif request.POST.get('form_type') == 'form5':
+            user = User.objects.get(username=form.cleaned_data['user'])
+            packages = Package.objects.filter(user_id=user.id)
+            
+        messages.success(request, 'Report generated successfully')
+        return render(request, 'Delivery/report.html', {'packages': packages, 'form': form})
+    return render(request, 'Delivery/report.html', {'packages':packages,'form': form, 'id': id})
+
 
 # Trace back packages
-def trace(request):
-    return render(request, 'Delivery/trace.html')
+def trace(request, id):
+    #get history of status of package
+    package = Package.objects.get(pk=id)
+    history = package.history.all()
+    return render(request, 'Delivery/trace.html', {'history': history})
 
 # Customer functions
 
@@ -283,6 +310,7 @@ def payment(request, id):
     #and update package status
     package = Package.objects.get(pk=id)
     package.status = 'Delivered'
+    package.pay = True
     package.save()
     return HttpResponseRedirect(reverse("packages"))
 

@@ -1,0 +1,52 @@
+{% extends "Delivery/index.html" %}
+
+{% block body %}
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <div class="alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endif %}
+<div class="containter">
+    <div class="row" style="text-align: center;">
+        <h1>Trace</h1>        
+        {% if history %}
+        {% if not request.user.is_staff %}
+            {% for instance in history %}
+            <p>Status: {{instance.status}}</p>
+            {% endfor %}
+       
+        {% else %}
+            {% for instance in history %}
+                <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
+                    <div class="card-body">
+                        <h5 class="card-title
+                        ">Package number: {{instance.id}}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Payment: {{instance.payment}}$</h6>
+                        <p class="card-text">{{instance.status}}</p>
+                        <p class="card-text">Sender: {{instance.user}}</p>
+                        <p class="card-text">Recipient: {{instance.recipient}}</p>
+                        <p class="card-text">Weight: {{instance.weight}}</p>
+                        <p class="card-text">Size: {{instance.dimensions}}</p>
+                        <p class="card-text">Insurance: {{instance.insurance_amount}}$</p>
+                        <p class="card-text">Category: {{instance.category}}</p>
+                        <p class="card-text">Date: {{instance.final_delivery_date}}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% else %}
+        <p>There is no history for this package</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

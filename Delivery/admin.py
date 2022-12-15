@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Package, RetailCenter, TransportedBy, TransportationEvent, Location, Truck, Plane, Airport, Customer
+from .models import User, Package, RetailCenter, TransportedBy, TransportationEvent, Location, Truck, Plane, Airport
 
 # Register your models here.
 admin.site.register(User)
@@ -11,4 +11,3 @@ admin.site.register(Location)
 admin.site.register(Truck)
 admin.site.register(Plane)
 admin.site.register(Airport)
-admin.site.register(Customer)

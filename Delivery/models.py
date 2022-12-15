@@ -1,12 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from simple_history.models import HistoricalRecords
 class User(AbstractUser):
     pass
 
-# Customer model
-class Customer(models.Model):
-    pass
+
 # Package model
 class Package(models.Model):
     #primary key
@@ -20,6 +18,8 @@ class Package(models.Model):
     value = models.FloatField(default=0)
     final_delivery_date = models.DateField()
     recipient = models.CharField(max_length=100, default='John Doe')
+    pay = models.BooleanField(default=False)
+    history = HistoricalRecords()
     #foreign key
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
@@ -43,7 +43,7 @@ class RetailCenter(models.Model):
 class TransportationEvent(models.Model):
     #primary key
     schedule_number = models.AutoField(primary_key=True)
-    type = models.CharField(max_length=100)
+    event_type = models.CharField(max_length=100, default='Air')
     delivery_route = models.CharField(max_length=100)
 
 # Transported By relationship model
@@ -55,11 +55,11 @@ class TransportedBy(models.Model):
 # Locations model
 class Location(models.Model):
     #primary key
-    location_number = models.AutoField(primary_key=True, default=1)
+    location_number = models.AutoField(primary_key=True)
     city = models.CharField(max_length=100, default='New York')
     #foreign key
     #one to many
-    package = models.ForeignKey(Package, on_delete=models.CASCADE)
+    package = models.ForeignKey(Package, on_delete=models.CASCADE, null=True)
 
 # Trucks part of Location model
 class Truck(models.Model):

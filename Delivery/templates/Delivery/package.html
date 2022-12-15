@@ -34,12 +34,12 @@
         <button class="btn btn-success" onclick="collapse()">Update</button>
     </div>
     <div style="display: none;" id="collapse">
-        <!-- delete -->
         <h1>Update</h1>
         <form method="post">
             {% csrf_token %}
             <h2>Package</h2>
             {{form1}}
+            
             <br>
             <h2>Location</h2>
             {{form2}}

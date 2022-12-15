@@ -23,7 +23,7 @@
             <h1>Sent packages</h1>
         </div>
         <div class="row">
-            {% if empty %}
+            {% if emptyID %}
                 <p>You have no sent packages</p>
             {% else %}
 
@@ -32,12 +32,14 @@
             <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
                 <div class="card-body">
                     <h5 class="card-title">Package number: {{package.id}}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">Payment: {{package.payment}}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Payment: {{package.payment}}$</h6>
                     <p class="card-text">{{package.status}}</p>
                     <p class="card-text">Sender: {{package.user}}</p>
                     <p class="card-text">Recipient: {{package.recipient}}</p>
                 </div>
                 <a href="{% url 'package' package.id %}">actions</a>
+                <a href="{% url 'trace' package.id %}">trace</a>
+
             </div>
             {% endfor %}
             {% endif %}
@@ -46,26 +48,24 @@
             <h1>Received packages</h1>
         </div>
         <div class="row">
-            {% if empty %}
+            {% if emptyName %}
                 <p>You have no received packages</p>
             {% else %}
-            {% if not delivered %}
-                <p>You have no packages to process</p>
-            {% else %}
             {% for apackage in package %}
-        
-            <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
-                <div class="card-body">
-                    <h5 class="card-title">Package number: {{apackage.id}}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">Payment: {{apackage.payment}}</h6>
-                    <p class="card-text">{{apackage.status}}</p>
-                    <p class="card-text">Sender: {{apackage.user}}</p>
-                    <p class="card-text">Recipient: {{apackage.recipient}}</p>
-                    <button class="btn btn-success" onclick="pay('{{apackage.id}}')">Pay</button>
-                </div>
-            </div>
-            {% endfor %}
-            {% endif %}
+                {% if not apackage.status == 'Delivered' %}
+                
+                    <div class="card col-sm-6" style="width: 18rem; margin: 10px;">
+                        <div class="card-body">
+                            <h5 class="card-title">Package number: {{apackage.id}}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Payment: {{apackage.payment}}$</h6>
+                            <p class="card-text">{{apackage.status}}</p>
+                            <p class="card-text">Sender: {{apackage.user}}</p>
+                            <p class="card-text">Recipient: {{apackage.recipient}}</p>
+                            <button class="btn btn-success" onclick="pay('{{apackage.id}}')">Pay</button>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}            
             {% endif %}
     </div>
 {% endif %}
@@ -81,6 +81,7 @@
             <p class="card-text">{{package.status}}</p>
         </div>
         <a href="{% url 'package' package.id %}">actions</a>
+        <a href="{% url 'trace' package.id %}">trace</a>
     </div>
     {% endfor %}
     </div>
