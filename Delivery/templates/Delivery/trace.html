@@ -18,11 +18,14 @@
 {% endif %}
 <div class="containter">
     <div class="row" style="text-align: center;">
-        <h1>Trace</h1>        
-        {% if history %}
+        <h1>Trace</h1> <p class="text-muted">Left to Right</p>        
+        {% if history or location %}
         {% if not request.user.is_staff %}
             {% for instance in history %}
-            <p>Status: {{instance.status}}</p>
+            <div class="col">
+                <p>Status: {{instance.status}}</p>
+                <p>At: {{instance.history_date}}</p>
+            </div>
             {% endfor %}
        
         {% else %}
@@ -31,15 +34,20 @@
                     <div class="card-body">
                         <h5 class="card-title
                         ">Package number: {{instance.id}}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">Payment: {{instance.payment}}$</h6>
                         <p class="card-text">{{instance.status}}</p>
                         <p class="card-text">Sender: {{instance.user}}</p>
                         <p class="card-text">Recipient: {{instance.recipient}}</p>
                         <p class="card-text">Weight: {{instance.weight}}</p>
                         <p class="card-text">Size: {{instance.dimensions}}</p>
                         <p class="card-text">Insurance: {{instance.insurance_amount}}$</p>
+                        <p class="card-text">Value: {{instance.value}}$</p>
                         <p class="card-text">Category: {{instance.category}}</p>
                         <p class="card-text">Date: {{instance.final_delivery_date}}</p>
+
+                        {% for loc in location %}
+                                <p class="card-text">Location: {{loc.city}}</p>
+                        {% endfor %}
+                        <p class="card-text">At: {{instance.history_date}}</p>
                     </div>
                 </div>
             {% endfor %}

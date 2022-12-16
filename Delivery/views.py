@@ -13,12 +13,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.core.mail import send_mail,BadHeaderError
 
-
 categories = ['Regular', 'Liquid', 'Fragile', 'Chemical', 'Other']
 status = ['In Transit', 'Delivered', 'Delayed', 'Lost', 'Damaged']
 dimensions = ['Small', 'Medium', 'Large', 'Extra Large']
 loc_type = ['Trucks', 'Airport', 'Warehouse', 'Plane']
 event_type = ['Air', 'Ground', 'Sea']
+cities = Location.objects.all().values_list('city', flat=True).distinct()
 class PackageForm(forms.ModelForm):
     class Meta:
         model = Package
@@ -28,11 +28,11 @@ class PackageForm(forms.ModelForm):
             'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'in kilograms'}),
             'destination': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Riyadh, Jeddah, etc...'}),
             'dimensions': forms.Select(choices=[(dimension, dimension) for dimension in dimensions], attrs={'class': 'form-control'}),
-            'insurance_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'in dollars'}),
+            'insurance_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'in dollars', 'value': 0, 'min': 0}),
             'status': forms.Select(choices=[(status, status) for status in status], attrs={'class': 'form-control'}),   
             'category': forms.Select(choices=[(category, category) for category in categories], attrs={'class': 'form-control'}),
-            'value': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'in dollars'}),
-            'final_delivery_date': forms.DateInput(attrs={'class': 'form-control' , 'placeholder': 'M/DD/YYYY'}),
+            'value': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'in dollars', 'value': 0, 'min': 0}),
+            'final_delivery_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 class LocationForm(forms.ModelForm):
     class Meta:
@@ -42,7 +42,7 @@ class LocationForm(forms.ModelForm):
             'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Riyadh, Jeddah, etc...'}),
         }
 class LocationTypeForm(forms.Form):
-    type = forms.ChoiceField(choices=[(type, type) for type in loc_type])
+    type = forms.ChoiceField(choices=[(type, type) for type in loc_type], widget=forms.Select(attrs={'class': 'form-control'}))
     identifier = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter the identifier ex. truck number, airport code, etc...'}))
 class TransportationEventForm(forms.ModelForm):
     class Meta:
@@ -74,12 +74,12 @@ class UserForm(forms.ModelForm):
         }
 
 class ReportForm(forms.Form):
-    start_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'class': 'form-control' , 'placeholder': 'M/DD/YYYY'}))
-    end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control' , 'placeholder': 'M/DD/YYYY'}))
+    start_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'class': 'form-control' , 'type': 'date'}))
+    end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control' , 'type': 'date'}))
     status = forms.ChoiceField(choices=[(status, status) for status in status], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     category = forms.ChoiceField(choices=[(category, category) for category in categories], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     user = forms.ChoiceField(choices=[(user, user) for user in User.objects.all()], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
-    location = forms.ChoiceField(choices=[(location.city, location.city) for location in Location.objects.all()], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    location = forms.ChoiceField(choices=[(city, city) for city in cities], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
 
 
 
@@ -98,7 +98,6 @@ def packages(request):
         packages = Package.objects.filter(user_id=request.user.id)
         #get received package for user by recipient name
         package = Package.objects.filter(recipient=request.user.username)
-        print(package)
         return render(request, "Delivery/packages.html", {
             "packages": packages,
             "package": package,
@@ -131,8 +130,46 @@ def package(request, id):
     package = Package.objects.get(pk=id)
     form1 = PackageForm(request.POST or None, instance=package)
     form2 = LocationForm(request.POST)
-    form3 = LocationTypeForm(request.POST)
+    form3 = LocationTypeForm(request.POST)  
     form4 = TransportationEventForm(request.POST)
+
+    if Location.objects.filter(package=package).exists():
+        location = Location.objects.filter(package=package)
+        #set instance to the last location
+        location = location[location.count()-1]
+        form2 = LocationForm(request.POST or None, instance=location)
+        
+        if Plane.objects.filter(location=location).exists():
+            planet_location = Plane.objects.filter(location=location)
+            #set instance to the last location
+            planet_location = planet_location[planet_location.count()-1]
+            form3 = LocationTypeForm(request.POST or None, initial={'type': 4, 'identifier': planet_location.flight_number})
+
+        elif Warehouse.objects.filter(location=location).exists():
+            warehouse_location = Warehouse.objects.filter(location=location)
+            #set instance to the last location
+            warehouse_location = warehouse_location[warehouse_location.count()-1]
+            form3 = LocationTypeForm(request.POST or None, initial={'type': 3, 'identifier': warehouse_location.warehouse_address})
+
+        elif Airport.objects.filter(location=location).exists():
+            airport_location = Airport.objects.filter(location=location)
+            #set instance to the last location
+            airport_location = airport_location[airport_location.count()-1]
+            form3 = LocationTypeForm(request.POST or None, initial={'type': 2, 'identifier': airport_location.airport_code})
+
+        elif Truck.objects.filter(location=location).exists():
+            truck_location = Truck.objects.filter(location=location)
+            #set instance to the last location
+            truck_location = truck_location[truck_location.count()-1]
+            form3 = LocationTypeForm(request.POST or None, initial={'type': 1, 'identifier': truck_location.truck_number})      
+
+    if TransportedBy.objects.filter(package_number=package).exists():
+        transported_by = TransportedBy.objects.filter(package_number=package)
+        #set instance to the last transportation event
+        transported_by = transported_by[transported_by.count()-1]
+        transportation_event = TransportationEvent.objects.get(pk=transported_by.schedule_number_id)
+        form4 = TransportationEventForm(request.POST or None, instance=transportation_event)
+
     if request.method == "POST":
         if form1.is_valid() and form2.is_valid() and form3.is_valid() and form4.is_valid():
             form1.save()
@@ -147,17 +184,17 @@ def package(request, id):
             #create location type
             location_type = form3.cleaned_data['type']
             if (location_type == 'Plane'):
-                plane = Plane.objects.create(flight_number=form3.cleaned_data['identifier'], location=Location.objects.get(city=form2.cleaned_data['city']))
+                plane = Plane.objects.create(flight_number=form3.cleaned_data['identifier'], location=Location.objects.get(location_number=loc.location_number))
 
                 plane.save()
             elif (location_type == 'Truck'):
-                truck = Truck.objects.create(truck_number=form3.cleaned_data['identifier'], location=Location.objects.get(city=form2.cleaned_data['city']))
+                truck = Truck.objects.create(truck_number=form3.cleaned_data['identifier'], location=Location.objects.get(location_number=loc.location_number))
                 truck.save()
             elif (location_type == 'Airport'):
-                airport = Airport.objects.create(airport_code=form3.cleaned_data['identifier'], location = Location.objects.get(city=form2.cleaned_data['city']))
+                airport = Airport.objects.create(airport_code=form3.cleaned_data['identifier'], location = Location.objects.get(location_number=loc.location_number))
                 airport.save()
             elif (location_type == 'Warehouse'):
-                warehouse = Warehouse.objects.create(warehouse_address=form3.cleaned_data['identifier'], location = Location.objects.get(city=form2.cleaned_data['city']))
+                warehouse = Warehouse.objects.create(warehouse_address=form3.cleaned_data['identifier'], location = Location.objects.get(location_number=loc.location_number))
                 warehouse.save()
             messages.success(request, 'Package updated successfully')
             return HttpResponseRedirect(reverse("packages"))
@@ -253,18 +290,36 @@ def report(request, id):
     if (id==1):
         packages = Package.objects.filter(pay = True)
     if request.method == "POST" and form.is_valid():
+        #Django API query
         if request.POST.get('form_type') == 'form2':
-            packages = Package.objects.filter(status=form.cleaned_data['status'], final_delivery_date__range=[form.cleaned_data['start_date'], form.cleaned_data['end_date']])
+            #Django API query
+            # packages = Package.objects.filter(status=form.cleaned_data['status'], final_delivery_date__range=[form.cleaned_data['start_date'], form.cleaned_data['end_date']]).order_by('final_delivery_date')
+
+            #Raw SQL query
+            packages = Package.objects.raw('SELECT * FROM Delivery_p ackage WHERE status = %s AND final_delivery_date BETWEEN %s AND %s ORDER BY final_delivery_date', [form.cleaned_data['status'], form.cleaned_data['start_date'], form.cleaned_data['end_date']])
+
         elif request.POST.get('form_type') == 'form3':
-            packages = Package.objects.filter(category=form.cleaned_data['category'], final_delivery_date__range=[form.cleaned_data['start_date'], form.cleaned_data['end_date']])
-        elif request.POST.get('form_type') == 'form4':
-            packages = Package.objects.filter(category=form.cleaned_data['category'], status=form.cleaned_data['status'], location__city=form.cleaned_data['location'])
+            # Django API query
+            # packages = Package.objects.filter(category=form.cleaned_data['category'], final_delivery_date__range=[form.cleaned_data['start_date'], form.cleaned_data['end_date']]).order_by('final_delivery_date')
+            #Raw SQL query
+            packages = Package.objects.raw('SELECT * FROM Delivery_package WHERE category = %s AND final_delivery_date BETWEEN %s AND %s ORDER BY final_delivery_date', [form.cleaned_data['category'], form.cleaned_data['start_date'], form.cleaned_data['end_date']])
+            
+        elif request.POST.get('form_type') == 'form4': 
+            locations = Location.objects.filter(city=form.cleaned_data['location'])
+            #Django API query
+            packages = Package.objects.filter(location__in=locations, status=form.cleaned_data['status'], category=form.cleaned_data['category'])
+
         elif request.POST.get('form_type') == 'form5':
             user = User.objects.get(username=form.cleaned_data['user'])
-            packages = Package.objects.filter(user_id=user.id)
-            
+
+            #Django API query
+            # packages = Package.objects.filter(user_id=user.id)
+
+            #Raw SQL query
+            packages = Package.objects.raw('SELECT * FROM Delivery_package WHERE user_id = %s', [user.id])
+
         messages.success(request, 'Report generated successfully')
-        return render(request, 'Delivery/report.html', {'packages': packages, 'form': form})
+        return render(request, 'Delivery/report.html', {'packages': packages, 'form': form, 'location': form.cleaned_data['location']})
     return render(request, 'Delivery/report.html', {'packages':packages,'form': form, 'id': id})
 
 
@@ -272,8 +327,9 @@ def report(request, id):
 def trace(request, id):
     #get history of status of package
     package = Package.objects.get(pk=id)
-    history = package.history.all()
-    return render(request, 'Delivery/trace.html', {'history': history})
+    history = package.history.all().order_by('history_date')
+    location = Location.objects.filter(package=package)
+    return render(request, 'Delivery/trace.html', {'history': history, 'location': location})
 
 # Customer functions
 
@@ -311,6 +367,7 @@ def payment(request, id):
     package = Package.objects.get(pk=id)
     package.status = 'Delivered'
     package.pay = True
+    messages.success(request, 'Payment successful'+ package.payment + '$ paid')
     package.save()
     return HttpResponseRedirect(reverse("packages"))
 

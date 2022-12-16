@@ -25,8 +25,8 @@
         <div class="col-sm-6">
             <form id="form2" action="" method="post">
                 {% csrf_token %}
-                {{form.start_date}}
-                {{form.end_date}}
+                From: {{form.start_date}}
+                To: {{form.end_date}}
                 {{form.status}}
                 <br>
                 <input type="hidden" name="form_type" value="form2">
@@ -40,8 +40,8 @@
         <div class="col-sm-6">
             <form id="form3" action="" method="post">
                 {% csrf_token %}
-                {{form.start_date}}
-                {{form.end_date}}
+                From: {{form.start_date}}
+                To: {{form.end_date}}
                 {{form.category}}
                 <br>
                 <input type="hidden" name="form_type" value="form3">
@@ -97,6 +97,9 @@
                     <p class="card-text">To: {{package.recipient}}</p>
                     <p class="card-text">Status: {{package.status}}</p>
                     <p class="card-text">Date: {{package.final_delivery_date}}</p>
+                    {% if location %}
+                        <p class="card-text">Location: {{location}}</p>
+                    {% endif %}
                 </div>
                 <a href="{% url 'package' package.id %}">Actions</a>
             </div>
@@ -108,5 +111,4 @@
 
     </div>
 </div>
-
 {% endblock %}
